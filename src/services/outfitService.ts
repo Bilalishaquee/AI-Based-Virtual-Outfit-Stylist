@@ -34,6 +34,7 @@ export const getOutfitRecommendations = async (
       mood,
       favoriteColor,
       weather: weather.condition,
+      temperature: weather.temp, // Pass temperature for season detection
       eventType,
       wardrobeItems,
     });
@@ -65,25 +66,53 @@ export const saveOutfitHistory = async (
 };
 
 export const getOutfitHistory = async (userId: string, limitCount: number = 10): Promise<OutfitHistory[]> => {
-  const q = query(
-    collection(db, 'outfitHistory'),
-    where('userId', '==', userId),
-    orderBy('savedAt', 'desc'),
-    limit(limitCount)
-  );
-  
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as OutfitHistory[];
+  try {
+    // Try the indexed query first (requires composite index)
+    const q = query(
+      collection(db, 'outfitHistory'),
+      where('userId', '==', userId),
+      orderBy('savedAt', 'desc'),
+      limit(limitCount)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as OutfitHistory[];
+  } catch (error: any) {
+    // If index is missing, fallback to query without orderBy and sort in memory
+    if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
+      console.warn('Firestore index not found, using fallback query. Please create the index using firestore.indexes.json');
+      
+      // Fallback: query without orderBy, then sort in memory
+      const fallbackQuery = query(
+        collection(db, 'outfitHistory'),
+        where('userId', '==', userId)
+      );
+      
+      const querySnapshot = await getDocs(fallbackQuery);
+      const results = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as OutfitHistory[];
+      
+      // Sort by savedAt descending and limit
+      return results
+        .sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0))
+        .slice(0, limitCount);
+    }
+    
+    // Re-throw other errors
+    throw error;
+  }
 };
 
 const generateMockRecommendations = (wardrobeItems: any[]): OutfitRecommendation[] => {
   const tops = wardrobeItems.filter((item) => item.category === 'top');
   const bottoms = wardrobeItems.filter((item) => item.category === 'bottom');
   const shoes = wardrobeItems.filter((item) => item.category === 'shoes');
-  const accessories = wardrobeItems.filter((item) => item.category === 'accessories');
+  const outerwear = wardrobeItems.filter((item) => item.category === 'outerwear');
 
   const recommendations: OutfitRecommendation[] = [];
   
@@ -91,7 +120,7 @@ const generateMockRecommendations = (wardrobeItems: any[]): OutfitRecommendation
     const top = tops[Math.floor(Math.random() * tops.length)];
     const bottom = bottoms[Math.floor(Math.random() * bottoms.length)];
     const shoe = shoes[Math.floor(Math.random() * shoes.length)];
-    const accessory = accessories[Math.floor(Math.random() * accessories.length)];
+    const outerwearItem = outerwear[Math.floor(Math.random() * outerwear.length)];
 
     if (top && bottom && shoe) {
       recommendations.push({
@@ -99,7 +128,7 @@ const generateMockRecommendations = (wardrobeItems: any[]): OutfitRecommendation
         top,
         bottom,
         shoes: shoe,
-        accessories: accessory ? [accessory] : [],
+        outerwear: outerwearItem ? [outerwearItem] : [],
         stylistComment: generateStylistComment(),
         score: 0.8 + Math.random() * 0.2,
         timestamp: Date.now(),

@@ -14,10 +14,6 @@ export default function SignUp({ onSwitchToLogin, onSuccess }: SignUpProps) {
     password: '',
     confirmPassword: '',
     gender: 'other' as 'male' | 'female' | 'other',
-    mood: 'casual',
-    favoriteColor: '#6366f1',
-    skinTone: 'Medium' as 'Fair' | 'Medium' | 'Dark',
-    hairStyle: 'short',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,12 +35,9 @@ export default function SignUp({ onSwitchToLogin, onSuccess }: SignUpProps) {
     setLoading(true);
 
     try {
+      // Only pass gender - other fields will use defaults in authService
       await signUp(formData.email, formData.password, {
         gender: formData.gender,
-        mood: formData.mood,
-        favoriteColor: formData.favoriteColor,
-        skinTone: formData.skinTone,
-        hairStyle: formData.hairStyle,
       });
       onSuccess();
     } catch (err: any) {
@@ -74,7 +67,7 @@ export default function SignUp({ onSwitchToLogin, onSuccess }: SignUpProps) {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="your@email.com"
             />
           </div>
@@ -89,7 +82,7 @@ export default function SignUp({ onSwitchToLogin, onSuccess }: SignUpProps) {
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="••••••••"
             />
           </div>
@@ -103,7 +96,7 @@ export default function SignUp({ onSwitchToLogin, onSuccess }: SignUpProps) {
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="••••••••"
             />
           </div>
@@ -116,69 +109,14 @@ export default function SignUp({ onSwitchToLogin, onSuccess }: SignUpProps) {
             <select
               value={formData.gender}
               onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              required
             >
               <option value="male">Male</option>
               <option value="female">Female</option>
               <option value="other">Other</option>
             </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Skin Tone
-            </label>
-            <select
-              value={formData.skinTone}
-              onChange={(e) => setFormData({ ...formData, skinTone: e.target.value as any })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="Fair">Fair</option>
-              <option value="Medium">Medium</option>
-              <option value="Dark">Dark</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Hair Style
-            </label>
-            <input
-              type="text"
-              value={formData.hairStyle}
-              onChange={(e) => setFormData({ ...formData, hairStyle: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="short / long / etc."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Favorite Color
-            </label>
-            <input
-              type="color"
-              value={formData.favoriteColor}
-              onChange={(e) => setFormData({ ...formData, favoriteColor: e.target.value })}
-              className="w-full h-12 border border-gray-300 rounded-lg cursor-pointer"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Mood
-            </label>
-            <select
-              value={formData.mood}
-              onChange={(e) => setFormData({ ...formData, mood: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="casual">Casual</option>
-              <option value="formal">Formal</option>
-              <option value="sporty">Sporty</option>
-              <option value="elegant">Elegant</option>
-              <option value="trendy">Trendy</option>
-            </select>
+            <p className="text-xs text-gray-500 mt-1">This helps us recommend the right outfits for you</p>
           </div>
 
           {error && (
@@ -194,7 +132,7 @@ export default function SignUp({ onSwitchToLogin, onSuccess }: SignUpProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               'Creating account...'
@@ -211,7 +149,7 @@ export default function SignUp({ onSwitchToLogin, onSuccess }: SignUpProps) {
           Already have an account?{' '}
           <button
             onClick={onSwitchToLogin}
-            className="text-purple-600 hover:text-purple-700 font-semibold"
+            className="text-orange-600 hover:text-orange-700 font-semibold"
           >
             Login
           </button>

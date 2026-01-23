@@ -13,26 +13,40 @@ export const signUp = async (
   password: string,
   profileData: Partial<UserProfile>
 ): Promise<User> => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-  // Create user profile in Firestore
-  const profile: UserProfile = {
-    uid: user.uid,
-    email: user.email || '',
-    gender: profileData.gender || 'other',
-    mood: profileData.mood || 'casual',
-    favoriteColor: profileData.favoriteColor || '#000000',
-    skinTone: profileData.skinTone || 'Medium',
-    hairStyle: profileData.hairStyle || 'short',
-    avatarSelections: {
-      skinTone: profileData.skinTone || 'Medium',
-      hairStyle: profileData.hairStyle || 'short',
-    },
-  };
+    // Create user profile in Firestore with defaults
+    // Only gender is required at signup, other fields use defaults
+    const profile: UserProfile = {
+      uid: user.uid,
+      email: user.email || '',
+      gender: profileData.gender || 'other',
+      mood: 'casual', // Default mood - will be set at outfit selection time
+      favoriteColor: '#808080', // Default neutral gray - will be set at outfit selection time
+      skinTone: 'Medium', // Default for avatar - can be changed in avatar settings
+      hairStyle: 'short', // Default for avatar - can be changed in avatar settings
+      avatarSelections: {
+        skinTone: 'Medium',
+        hairStyle: 'short',
+      },
+    };
 
-  await setDoc(doc(db, 'users', user.uid), profile);
-  return user;
+    await setDoc(doc(db, 'users', user.uid), profile);
+    return user;
+  } catch (error: any) {
+    // Provide helpful error messages for common Firebase errors
+    if (error.code === 'auth/configuration-not-found') {
+      throw new Error(
+        'Firebase configuration error. Please check:\n' +
+        '1. Your Firebase project exists and credentials match\n' +
+        '2. authDomain format is: <project-id>.firebaseapp.com\n' +
+        '3. Email/Password authentication is enabled in Firebase Console'
+      );
+    }
+    throw error;
+  }
 };
 
 export const login = async (email: string, password: string): Promise<User> => {

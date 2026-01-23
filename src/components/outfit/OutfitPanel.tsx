@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getOutfitRecommendations, saveOutfitHistory, getOutfitHistory } from '../../services/outfitService';
+import { getOutfitRecommendations, saveOutfitHistory, getOutfitHistory, getWeather } from '../../services/outfitService';
 import { getUserWardrobe } from '../../services/wardrobeService';
 import { OutfitRecommendation, WardrobeItem } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Heart, ShoppingBag, Sparkles, Loader, ArrowRightLeft } from 'lucide-react';
 import AvatarCanvas from '../avatar/AvatarCanvas';
+import { ErrorBoundary } from '../common/ErrorBoundary';
 
 export default function OutfitPanel() {
   const { user, profile, updateProfile } = useAuth();
@@ -16,13 +17,28 @@ export default function OutfitPanel() {
   const [eventType, setEventType] = useState('casual');
   const [history, setHistory] = useState<any[]>([]);
   const [showSwap, setShowSwap] = useState<string | null>(null);
+  
+  // Color and mood preferences for this outfit generation (not stored in profile)
+  const [currentMood, setCurrentMood] = useState(profile?.mood || 'casual');
+  const [currentFavoriteColor, setCurrentFavoriteColor] = useState(profile?.favoriteColor || '#808080');
+  const [weather, setWeather] = useState<any>(null);
 
   useEffect(() => {
     if (user && profile) {
       loadWardrobe();
       loadHistory();
+      loadWeather();
     }
   }, [user, profile]);
+  
+  const loadWeather = async () => {
+    try {
+      const weatherData = await getWeather();
+      setWeather(weatherData);
+    } catch (error) {
+      console.error('Error loading weather:', error);
+    }
+  };
 
   const loadWardrobe = async () => {
     if (!user) return;
@@ -55,8 +71,8 @@ export default function OutfitPanel() {
       const recs = await getOutfitRecommendations(
         user.uid,
         profile.gender,
-        profile.mood,
-        profile.favoriteColor,
+        currentMood, // Use current mood selection
+        currentFavoriteColor, // Use current color selection
         eventType,
         wardrobeItems
       );
@@ -85,13 +101,13 @@ export default function OutfitPanel() {
     }
   };
 
-  const swapItem = (category: 'top' | 'bottom' | 'shoes' | 'accessories', item: WardrobeItem) => {
+  const swapItem = (category: 'top' | 'bottom' | 'shoes' | 'outerwear', item: WardrobeItem) => {
     if (!currentOutfit) return;
 
     const updated = { ...currentOutfit };
-    if (category === 'accessories') {
-      updated.accessories = updated.accessories || [];
-      updated.accessories.push(item);
+    if (category === 'outerwear') {
+      updated.outerwear = updated.outerwear || [];
+      updated.outerwear.push(item);
     } else {
       (updated as any)[category] = item;
     }
@@ -103,63 +119,154 @@ export default function OutfitPanel() {
     return <div className="text-center py-12">Please complete your profile</div>;
   }
 
+  // Event type descriptions
+  const eventDescriptions: Record<string, string> = {
+    casual: 'Everyday wear, comfortable and relaxed',
+    formal: 'Business meetings, professional events',
+    sporty: 'Active lifestyle, gym, sports activities',
+    party: 'Evening events, celebrations, social gatherings',
+    work: 'Office appropriate, business casual',
+  };
+
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">AI Outfit Stylist</h2>
-            <p className="text-gray-600">Get personalized outfit recommendations</p>
+      {/* Weather Display */}
+      {weather && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl shadow-lg p-6 border-2 border-orange-200"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="text-4xl">
+                {weather.condition === 'clear' || weather.condition === 'sunny' ? '☀️' : 
+                 weather.condition === 'rain' ? '🌧️' : 
+                 weather.condition === 'clouds' ? '☁️' : '🌤️'}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 capitalize">{weather.condition}</h3>
+                <p className="text-2xl font-semibold text-gray-700">{weather.temp}°C</p>
+                {weather.humidity && <p className="text-sm text-gray-600">{weather.humidity}% Humidity</p>}
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-700">Clothing Recommendation</p>
+              <p className="text-lg font-semibold text-orange-700">
+                {weather.temp > 25 ? 'Light Clothing' : weather.temp < 15 ? 'Warm Clothing' : 'Moderate Clothing'}
+              </p>
+            </div>
           </div>
+        </motion.div>
+      )}
 
-          <div className="flex gap-3">
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">AI Outfit Stylist</h2>
+          <p className="text-gray-600">Get personalized outfit recommendations</p>
+        </div>
+
+        {/* Preferences Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          {/* Event Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Event
+            </label>
             <select
               value={eventType}
               onChange={(e) => setEventType(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            >
+              <option value="casual">Casual - {eventDescriptions.casual}</option>
+              <option value="formal">Formal - {eventDescriptions.formal}</option>
+              <option value="sporty">Sporty - {eventDescriptions.sporty}</option>
+              <option value="party">Party - {eventDescriptions.party}</option>
+              <option value="work">Work - {eventDescriptions.work}</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">{eventDescriptions[eventType]}</p>
+          </div>
+
+          {/* Color Preference */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Color Preference
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={currentFavoriteColor}
+                onChange={(e) => setCurrentFavoriteColor(e.target.value)}
+                className="w-12 h-12 border border-gray-300 rounded-lg cursor-pointer"
+              />
+              <div className="flex-1">
+                <div
+                  className="w-full h-10 rounded-lg border-2 border-gray-300"
+                  style={{ backgroundColor: currentFavoriteColor }}
+                />
+                <p className="text-xs text-gray-500 mt-1">Preferred outfit color</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mood Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Mood
+            </label>
+            <select
+              value={currentMood}
+              onChange={(e) => setCurrentMood(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
               <option value="casual">Casual</option>
               <option value="formal">Formal</option>
               <option value="sporty">Sporty</option>
-              <option value="party">Party</option>
-              <option value="work">Work</option>
+              <option value="elegant">Elegant</option>
+              <option value="trendy">Trendy</option>
             </select>
-
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={generateRecommendations}
-              disabled={loading}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  Get Recommendations
-                </>
-              )}
-            </motion.button>
+            <p className="text-xs text-gray-500 mt-1">Your style mood for this outfit</p>
           </div>
+        </div>
+
+        {/* Generate Button */}
+        <div className="flex justify-center">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={generateRecommendations}
+            disabled={loading}
+            className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-lg font-semibold flex items-center gap-2 disabled:opacity-50 shadow-lg"
+          >
+            {loading ? (
+              <>
+                <Loader className="w-5 h-5 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                Get Recommendations
+              </>
+            )}
+          </motion.button>
         </div>
 
         {currentOutfit && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <AvatarCanvas
-                profile={profile}
-                outfit={currentOutfit}
-                onSkinToneChange={async (skinTone) => {
-                  await updateProfile({ skinTone: skinTone as any });
-                }}
-                onHairStyleChange={async (hairStyle) => {
-                  await updateProfile({ hairStyle });
-                }}
-              />
+              <ErrorBoundary>
+                <AvatarCanvas
+                  profile={profile}
+                  outfit={currentOutfit}
+                  onSkinToneChange={async (skinTone) => {
+                    await updateProfile({ skinTone: skinTone as any });
+                  }}
+                  onHairStyleChange={async (hairStyle) => {
+                    await updateProfile({ hairStyle });
+                  }}
+                />
+              </ErrorBoundary>
             </div>
 
             <div className="space-y-4">
@@ -326,16 +433,16 @@ export default function OutfitPanel() {
                     </div>
                   )}
 
-                  {currentOutfit.accessories?.map((acc, idx) => (
+                  {currentOutfit.outerwear?.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
                       <img
-                        src={acc.imageUrl}
-                        alt="accessory"
+                        src={item.imageUrl}
+                        alt="outerwear"
                         className="w-16 h-16 object-cover rounded"
                       />
                       <div className="flex-1">
-                        <p className="font-medium">Accessory</p>
-                        <p className="text-sm text-gray-500">{acc.dominantColor}</p>
+                        <p className="font-medium">Outerwear</p>
+                        <p className="text-sm text-gray-500">{item.dominantColor}</p>
                       </div>
                     </div>
                   ))}

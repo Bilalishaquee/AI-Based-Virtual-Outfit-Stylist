@@ -49,7 +49,7 @@ export default function Login({ onSwitchToSignUp, onSuccess }: LoginProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="your@email.com"
             />
           </div>
@@ -64,7 +64,7 @@ export default function Login({ onSwitchToSignUp, onSuccess }: LoginProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="••••••••"
             />
           </div>
@@ -82,7 +82,7 @@ export default function Login({ onSwitchToSignUp, onSuccess }: LoginProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               'Logging in...'
@@ -99,7 +99,7 @@ export default function Login({ onSwitchToSignUp, onSuccess }: LoginProps) {
           Don't have an account?{' '}
           <button
             onClick={onSwitchToSignUp}
-            className="text-purple-600 hover:text-purple-700 font-semibold"
+            className="text-orange-600 hover:text-orange-700 font-semibold"
           >
             Sign up
           </button>
