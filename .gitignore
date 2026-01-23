@@ -7,9 +7,6 @@ ml-service/.venv/
 ml-service/venv/
 
 # Environment variables
-.env
-.env.local
-.env.production
 backend/.env
 ml-service/.env
 
@@ -31,3 +28,4 @@ Thumbs.db
 # Firebase
 .firebase/
 firebase-debug.log
+config.bat

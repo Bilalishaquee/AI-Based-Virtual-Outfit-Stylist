@@ -15,7 +15,7 @@ export interface UserProfile {
 export interface WardrobeItem {
   id: string;
   userId: string;
-  category: 'top' | 'bottom' | 'shoes' | 'accessories';
+  category: 'top' | 'bottom' | 'shoes' | 'outerwear';
   gender: 'male' | 'female' | 'unisex';
   dominantColor: string;
   uploadTimestamp: number;
@@ -28,7 +28,7 @@ export interface OutfitRecommendation {
   top?: WardrobeItem;
   bottom?: WardrobeItem;
   shoes?: WardrobeItem;
-  accessories?: WardrobeItem[];
+  outerwear?: WardrobeItem[];
   stylistComment: string;
   score: number;
   timestamp: number;

@@ -6,16 +6,33 @@ import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import WardrobePage from './pages/WardrobePage';
 import OutfitsPage from './pages/OutfitsPage';
+import SplashScreen from './components/common/SplashScreen';
+import { useState, useEffect } from 'react';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    // Show splash screen only on initial load
+    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
+    if (hasSeenSplash) {
+      setShowSplash(false);
+    } else {
+      sessionStorage.setItem('hasSeenSplash', 'true');
+    }
+  }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brown-50 via-peach-50 to-orange-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
     );
+  }
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   return (

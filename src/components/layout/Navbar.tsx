@@ -19,8 +19,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2 text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              <Sparkles className="w-8 h-8 text-purple-600" />
+            <Link to="/" className="flex items-center gap-2 text-2xl font-bold bg-gradient-to-r from-orange-600 to-brown-600 bg-clip-text text-transparent">
+              <Sparkles className="w-8 h-8 text-orange-600" />
               AI Stylist
             </Link>
 
@@ -29,7 +29,7 @@ export default function Navbar() {
                 to="/wardrobe"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
                   location.pathname === '/wardrobe'
-                    ? 'bg-purple-100 text-purple-700'
+                    ? 'bg-orange-100 text-orange-700'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -40,7 +40,7 @@ export default function Navbar() {
                 to="/outfits"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
                   location.pathname === '/outfits'
-                    ? 'bg-purple-100 text-purple-700'
+                    ? 'bg-orange-100 text-orange-700'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >

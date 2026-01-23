@@ -1,6 +1,6 @@
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { storage, db } from '../config/firebase';
+import { db } from '../config/firebase';
+import { uploadImageToImgBB } from './imageStorageService';
 import { WardrobeItem } from '../types';
 
 export const uploadWardrobeItem = async (
@@ -10,13 +10,9 @@ export const uploadWardrobeItem = async (
   gender: WardrobeItem['gender'],
   dominantColor: string
 ): Promise<WardrobeItem> => {
-  // Upload image to Firebase Storage
+  // Upload image to ImgBB
   const timestamp = Date.now();
-  const fileName = `${userId}/${category}/${timestamp}_${file.name}`;
-  const storageRef = ref(storage, fileName);
-  
-  await uploadBytes(storageRef, file);
-  const imageUrl = await getDownloadURL(storageRef);
+  const { url: imageUrl } = await uploadImageToImgBB(file, userId);
 
   // Save metadata to Firestore
   const itemData: Omit<WardrobeItem, 'id'> = {
@@ -26,7 +22,7 @@ export const uploadWardrobeItem = async (
     dominantColor,
     uploadTimestamp: timestamp,
     imageUrl,
-    storagePath: fileName,
+    storagePath: imageUrl, // Store ImgBB URL as storagePath for reference
   };
 
   const docRef = await addDoc(collection(db, 'wardrobe'), itemData);
@@ -48,6 +44,9 @@ export const getUserWardrobe = async (userId: string): Promise<WardrobeItem[]> =
 };
 
 export const deleteWardrobeItem = async (itemId: string): Promise<void> => {
+  // Note: ImgBB free tier doesn't support programmatic deletion
+  // We only delete the reference from Firestore
+  // The image will remain on ImgBB servers
   await deleteDoc(doc(db, 'wardrobe', itemId));
 };
 

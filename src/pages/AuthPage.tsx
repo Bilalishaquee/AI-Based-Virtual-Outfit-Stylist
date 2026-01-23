@@ -14,7 +14,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-brown-50 via-peach-50 to-orange-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -22,8 +22,8 @@ export default function AuthPage() {
           className="text-center mb-8"
         >
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Sparkles className="w-10 h-10 text-purple-600" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <Sparkles className="w-10 h-10 text-orange-600" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-brown-600 bg-clip-text text-transparent">
               AI Virtual Outfit Stylist
             </h1>
           </div>
